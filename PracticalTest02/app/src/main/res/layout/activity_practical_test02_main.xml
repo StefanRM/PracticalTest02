@@ -77,27 +77,51 @@
         android:orientation="horizontal">
 
         <EditText
-            android:id="@+id/client_query"
+            android:id="@+id/client_hour"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:hint="Query"
+            android:hint="hour"
             android:inputType="textPersonName" />
 
-        <Button
-            android:id="@+id/client_button"
+        <EditText
+            android:id="@+id/client_minute"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Get info" />
+            android:ems="10"
+            android:hint="minute"
+            android:inputType="textPersonName" />
+
     </LinearLayout>
 
-    <Spinner
-        android:id="@+id/client_spinner"
-        android:layout_width="190dp"
-        android:layout_height="wrap_content"
-        android:entries="@array/information_types"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/client_set"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Set" />
+
+        <Button
+            android:id="@+id/client_reset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Reset" />
+
+        <Button
+            android:id="@+id/client_poll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Poll" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/result_info"

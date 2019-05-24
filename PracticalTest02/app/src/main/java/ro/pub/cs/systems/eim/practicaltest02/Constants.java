@@ -7,9 +7,14 @@ public interface Constants {
 
     final public static String WEB_SERVICE_ADDRESS = "https://autocomplete.wunderground.com/aq";
 
-    final public static String COUNTRY = "country";
-    final public static String TIMEZONE = "timezone";
-    final public static String ALL = "all";
+    final public static String NIST_SERVER_HOST = "localhost";
+    final public static int NIST_SERVER_PORT = 13;
+
+    final public static String DATE = "vineri 24 mai 2019, 09:23:40 +0300";
+
+    final public static String SET = "set";
+    final public static String RESET = "reset";
+    final public static String POLL = "poll";
 
     final public static String JSON_KEY = "RESULTS";
     final public static String JSON_COUNTRY = "name";

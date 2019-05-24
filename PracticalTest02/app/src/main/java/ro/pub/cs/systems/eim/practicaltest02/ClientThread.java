@@ -12,16 +12,18 @@ public class ClientThread extends Thread {
 
     private String address;
     private int port;
-    private String city;
+    private String hour;
+    private String minute;
     private String informationType;
     private TextView resultTextView;
 
     private Socket socket;
 
-    public ClientThread(String address, int port, String city, String informationType, TextView resultTextView) {
+    public ClientThread(String address, int port, String hour, String minute, String informationType, TextView resultTextView) {
         this.address = address;
         this.port = port;
-        this.city = city;
+        this.hour = hour;
+        this.minute = minute;
         this.informationType = informationType;
         this.resultTextView = resultTextView;
     }
@@ -40,10 +42,15 @@ public class ClientThread extends Thread {
                 Log.d(Constants.TAG, "[CLIENT THREAD] Buffered Reader / Print Writer are null!");
                 return;
             }
-            printWriter.println(city);
+            printWriter.println(hour);
             printWriter.flush();
+            Log.d(Constants.TAG, "[CLIENT THREAD] Sent: " + hour);
+            printWriter.println(minute);
+            printWriter.flush();
+            Log.d(Constants.TAG, "[CLIENT THREAD] Sent: " + minute);
             printWriter.println(informationType);
             printWriter.flush();
+            Log.d(Constants.TAG, "[CLIENT THREAD] Sent: " + informationType);
             String info;
             while ((info = bufferedReader.readLine()) != null) {
                 final String finalizedInformation = info;

@@ -40,6 +40,11 @@ public class ServerThread extends Thread {
         return data;
     }
 
+    public synchronized void removeData(String city) {
+
+        this.data.remove(city);
+    }
+
     @Override
     public void run() {
         try {

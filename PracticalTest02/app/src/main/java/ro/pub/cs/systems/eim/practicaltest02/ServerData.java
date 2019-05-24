@@ -1,37 +1,29 @@
 package ro.pub.cs.systems.eim.practicaltest02;
 
 public class ServerData {
-    private String country;
-    private String timezone;
+    private String hour;
+    private String minute;
 
     public ServerData() {
-        this.country = null;
-        this.timezone = null;
+        this.hour = null;
+        this.minute = null;
     }
 
-    public ServerData(String country, String timezone) {
-        this.country = country;
-        this.timezone = timezone;
+    public ServerData(String hour, String minute) {
+        this.hour = hour;
+        this.minute = minute;
     }
 
-    public String getCountry() {
-        return country;
+    public int getHour() {
+        return Integer.parseInt(hour);
     }
 
-    public String getTimezone() {
-        return timezone;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public void setTimezone(String timezone) {
-        this.timezone = timezone;
+    public int getMinute() {
+        return Integer.parseInt(minute);
     }
 
     @Override
     public String toString() {
-        return "Gathered Info: { country = " + country + ", timezone = " + timezone + " }";
+        return "Alarm: " + hour + ":" + minute;
     }
 }

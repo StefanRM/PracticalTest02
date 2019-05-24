@@ -1,5 +1,6 @@
 package ro.pub.cs.systems.eim.practicaltest02;
 
+import android.os.AsyncTask;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -13,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +32,34 @@ import cz.msebera.android.httpclient.protocol.HTTP;
 public class CommunicationThread extends Thread {
     private ServerThread serverThread;
     private Socket socket;
+
+    private class NISTCommunicationAsyncTask extends AsyncTask<Void, Void, String> {
+        public String time = null;
+
+        @Override
+        protected String doInBackground(Void... params) {
+            String dayTimeProtocol = null;
+            try {
+                Socket socket = new Socket(Constants.NIST_SERVER_HOST, Constants.NIST_SERVER_PORT);
+                BufferedReader bufferedReader = Utilities.getReader(socket);
+                dayTimeProtocol = bufferedReader.readLine();
+                Log.d(Constants.TAG, "The server returned: " + dayTimeProtocol);
+                this.time = dayTimeProtocol;
+            } catch (UnknownHostException unknownHostException) {
+                Log.d(Constants.TAG, unknownHostException.getMessage());
+                if (Constants.DEBUG) {
+                    unknownHostException.printStackTrace();
+                }
+            } catch (IOException ioException) {
+                Log.d(Constants.TAG, ioException.getMessage());
+                if (Constants.DEBUG) {
+                    ioException.printStackTrace();
+                }
+            }
+            return dayTimeProtocol;
+        }
+
+    }
 
     public CommunicationThread(ServerThread serverThread, Socket socket) {
         this.serverThread = serverThread;
@@ -52,96 +82,84 @@ public class CommunicationThread extends Thread {
             }
             Log.d(Constants.TAG, "[COMMUNICATION THREAD] Waiting for parameters from client (city / information type!");
 
-            String city = bufferedReader.readLine();
+            String hour = bufferedReader.readLine();
+            String minute = bufferedReader.readLine();
             String informationType = bufferedReader.readLine();
-            if (city == null || city.isEmpty() || informationType == null || informationType.isEmpty()) {
+            if (hour == null || hour.isEmpty() || minute == null || minute.isEmpty() || informationType == null || informationType.isEmpty()) {
                 Log.d(Constants.TAG, "[COMMUNICATION THREAD] Error receiving parameters from client (city / information type!");
                 return;
             }
 
+            Log.d(Constants.TAG, "[COMMUNICATION THREAD] Received:" + hour + " " + minute + " " + informationType);
+
             HashMap<String, ServerData> data = serverThread.getData();
             ServerData serverData = null;
-            if (data.containsKey(city)) {
+
+            String ipAddr = socket.getInetAddress().toString();
+
+            if (data.containsKey(ipAddr)) {
                 Log.d(Constants.TAG, "[COMMUNICATION THREAD] Getting the information from the cache...");
-                serverData = data.get(city);
+                serverData = data.get(ipAddr);
             } else {
-                Log.i(Constants.TAG, "[COMMUNICATION THREAD] Getting the information from the webservice...");
-                HttpClient httpClient = new DefaultHttpClient();
-                HttpPost httpPost = new HttpPost(Constants.WEB_SERVICE_ADDRESS);
-                List<NameValuePair> params = new ArrayList<>();
-                params.add(new BasicNameValuePair(Constants.QUERY_ATTRIBUTE, city));
-                UrlEncodedFormEntity urlEncodedFormEntity = new UrlEncodedFormEntity(params, HTTP.UTF_8);
-                httpPost.setEntity(urlEncodedFormEntity);
-                ResponseHandler<String> responseHandler = new BasicResponseHandler();
-                String pageSourceCode = httpClient.execute(httpPost, responseHandler);
-                if (pageSourceCode == null) {
-                    Log.d(Constants.TAG, "[COMMUNICATION THREAD] Error getting the information from the webservice!");
-                    return;
-                }
-//                Document document = Jsoup.parse(pageSourceCode);
-//                Element element = document.child(0);
-//                Elements elements = element.getElementsByTag(Constants.SCRIPT_TAG);
-//                for (Element script: elements) {
-//                    String scriptData = script.data();
-//                    if (scriptData.contains(Constants.SEARCH_KEY)) {
-//                        int position = scriptData.indexOf(Constants.SEARCH_KEY) + Constants.SEARCH_KEY.length();
-//                        scriptData = scriptData.substring(position);
-//                        JSONObject content = new JSONObject(scriptData);
-//                        JSONObject currentObservation = content.getJSONObject(Constants.CURRENT_OBSERVATION);
-//                        String temperature = currentObservation.getString(Constants.TEMPERATURE);
-
-                Log.d(Constants.TAG, "[COMMUNICATION THREAD] JSON: " + pageSourceCode);
-
-                JSONObject jsonObject = new JSONObject(pageSourceCode);
-                JSONArray results = jsonObject.getJSONArray(Constants.JSON_KEY);
-
-                if (results.length() == 0) {
-                    Log.d(Constants.TAG, "[COMMUNICATION THREAD] City not found!");
-                    return;
-                }
-
-                String country = results.getJSONObject(0).getString(Constants.JSON_COUNTRY);
-                String timezone = results.getJSONObject(0).getString(Constants.JSON_TIMEZONE);
-                serverData = new ServerData(country, timezone);
-                serverThread.setData(city, serverData);
-            }
-
-            if (serverData == null) {
                 Log.d(Constants.TAG, "[COMMUNICATION THREAD] Server Data Information is null!");
-                return;
+                if (informationType.equals(Constants.SET)) {
+                    serverData = new ServerData(hour, minute);
+                    serverThread.setData(ipAddr, serverData);
+
+                    printWriter.println(informationType + " " + serverData.toString());
+                    printWriter.flush();
+                    return;
+                } else {
+                    printWriter.println("none");
+                    printWriter.flush();
+                    return;
+                }
             }
 
-            String result = null;
+            String result = "";
             switch (informationType) {
-                case Constants.ALL :
-                    result = serverData.toString();
+                case Constants.RESET:
+                    serverThread.removeData(ipAddr);
                     break;
 
-                case Constants.COUNTRY:
-                    result = serverData.getCountry();
-                    break;
+                case Constants.POLL:
+//                    NISTCommunicationAsyncTask nistCommunicationAsyncTask = new NISTCommunicationAsyncTask();
+//                    nistCommunicationAsyncTask.execute();
+//                    result = nistCommunicationAsyncTask.time;
+                      result = Constants.DATE;
+                      String[] splited = result.split(" ");
+                      String resultHout = splited[4].charAt(0) + "" + splited[4].charAt(1);
+                      String resultMin = splited[4].charAt(3) + "" + splited[4].charAt(4);
 
-                case Constants.TIMEZONE:
-                    result = serverData.getTimezone();
+                      result = resultHout + resultMin;
+                      int h = Integer.parseInt(resultHout);
+                      int m = Integer.parseInt(resultMin);
+
+                      if (h < serverData.getHour() || (h == serverData.getHour() && m < serverData.getMinute()))
+                          result = "active " + serverData.toString();
+                      else
+                          result = "inactive " + serverData.toString();
+
                     break;
 
                 default:
                     result = "[COMMUNICATION THREAD] Wrong information type (all / country / timezone)!";
             }
 
-            printWriter.println(result);
+            printWriter.println(informationType + " " + result);
             printWriter.flush();
+
 
         } catch (IOException ioException) {
             Log.d(Constants.TAG, "[COMMUNICATION THREAD] An exception has occurred: " + ioException.getMessage());
             if (Constants.DEBUG) {
                 ioException.printStackTrace();
             }
-        } catch (JSONException jsonException) {
-            Log.d(Constants.TAG, "[COMMUNICATION THREAD] An exception has occurred: " + jsonException.getMessage());
-            if (Constants.DEBUG) {
-                jsonException.printStackTrace();
-            }
+//        } catch (JSONException jsonException) {
+//            Log.d(Constants.TAG, "[COMMUNICATION THREAD] An exception has occurred: " + jsonException.getMessage());
+//            if (Constants.DEBUG) {
+//                jsonException.printStackTrace();
+//            }
         } finally {
             if (socket != null) {
                 try {

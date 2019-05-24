@@ -17,10 +17,12 @@ public class PracticalTest02MainActivity extends AppCompatActivity {
 
     private EditText clientAddressEditText = null;
     private EditText clientPortEditText = null;
-    private EditText clientQueryEditText = null;
-    private Spinner resultInfoSpinner = null;
+    private EditText clienHourEditText = null;
+    private EditText clientMinuteEditText = null;
     private TextView resultTextView = null;
-    private Button clientButton = null;
+    private Button clientSetButton = null;
+    private Button clientResetButton = null;
+    private Button clientPollButton = null;
 
     private ServerThread serverThread = null;
     private ClientThread clientThread = null;
@@ -44,8 +46,8 @@ public class PracticalTest02MainActivity extends AppCompatActivity {
         }
     }
 
-    private GetResultInfoClickListener getResultInfoClickListener = new GetResultInfoClickListener();
-    private class GetResultInfoClickListener implements Button.OnClickListener {
+    private SetClickListener setClickListener = new SetClickListener();
+    private class SetClickListener implements Button.OnClickListener {
         @Override
         public void onClick(View v) {
             String clientAddress = clientAddressEditText.getText().toString();
@@ -59,9 +61,10 @@ public class PracticalTest02MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "[MAIN ACTIVITY] There is no server to connect to!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            String query = clientQueryEditText.getText().toString();
-            String informationType = resultInfoSpinner.getSelectedItem().toString();
-            if (query == null || query.isEmpty()
+            String hour = clienHourEditText.getText().toString();
+            String minute = clientMinuteEditText.getText().toString();
+            String informationType = Constants.SET;
+            if (hour == null || hour.isEmpty() || minute == null || minute.isEmpty()
                     || informationType == null || informationType.isEmpty()) {
                 Toast.makeText(getApplicationContext(), "[MAIN ACTIVITY] Parameters from client (city / information type) should be filled", Toast.LENGTH_SHORT).show();
                 return;
@@ -69,7 +72,69 @@ public class PracticalTest02MainActivity extends AppCompatActivity {
 
             resultTextView.setText(Constants.EMPTY_STRING);
 
-            clientThread = new ClientThread(clientAddress, Integer.parseInt(clientPort), query, informationType, resultTextView);
+            clientThread = new ClientThread(clientAddress, Integer.parseInt(clientPort), hour, minute, informationType, resultTextView);
+            clientThread.start();
+        }
+    }
+
+    private ResetClickListener resetClickListener = new ResetClickListener();
+    private class ResetClickListener implements Button.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            String clientAddress = clientAddressEditText.getText().toString();
+            String clientPort = clientPortEditText.getText().toString();
+            if (clientAddress == null || clientAddress.isEmpty()
+                    || clientPort == null || clientPort.isEmpty()) {
+                Toast.makeText(getApplicationContext(), "[MAIN ACTIVITY] Client connection parameters should be filled!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (serverThread == null || !serverThread.isAlive()) {
+                Toast.makeText(getApplicationContext(), "[MAIN ACTIVITY] There is no server to connect to!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String hour = clienHourEditText.getText().toString();
+            String minute = clientMinuteEditText.getText().toString();
+            String informationType = Constants.RESET;
+            if (hour == null || hour.isEmpty() || minute == null || minute.isEmpty()
+                    || informationType == null || informationType.isEmpty()) {
+                Toast.makeText(getApplicationContext(), "[MAIN ACTIVITY] Parameters from client (city / information type) should be filled", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            resultTextView.setText(Constants.EMPTY_STRING);
+
+            clientThread = new ClientThread(clientAddress, Integer.parseInt(clientPort), hour, minute, informationType, resultTextView);
+            clientThread.start();
+        }
+    }
+
+    private PollClickListener pollClickListener = new PollClickListener();
+    private class PollClickListener implements Button.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            String clientAddress = clientAddressEditText.getText().toString();
+            String clientPort = clientPortEditText.getText().toString();
+            if (clientAddress == null || clientAddress.isEmpty()
+                    || clientPort == null || clientPort.isEmpty()) {
+                Toast.makeText(getApplicationContext(), "[MAIN ACTIVITY] Client connection parameters should be filled!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (serverThread == null || !serverThread.isAlive()) {
+                Toast.makeText(getApplicationContext(), "[MAIN ACTIVITY] There is no server to connect to!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String hour = clienHourEditText.getText().toString();
+            String minute = clientMinuteEditText.getText().toString();
+            String informationType = Constants.POLL;
+            if (hour == null || hour.isEmpty() || minute == null || minute.isEmpty()
+                    || informationType == null || informationType.isEmpty()) {
+                Toast.makeText(getApplicationContext(), "[MAIN ACTIVITY] Parameters from client (city / information type) should be filled", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            resultTextView.setText(Constants.EMPTY_STRING);
+
+            clientThread = new ClientThread(clientAddress, Integer.parseInt(clientPort), hour, minute, informationType, resultTextView);
             clientThread.start();
         }
     }
@@ -86,11 +151,15 @@ public class PracticalTest02MainActivity extends AppCompatActivity {
 
         clientAddressEditText = (EditText) findViewById(R.id.client_address);
         clientPortEditText = (EditText) findViewById(R.id.client_port);
-        clientQueryEditText = (EditText) findViewById(R.id.client_query);
-        resultInfoSpinner = (Spinner) findViewById(R.id.client_spinner);
+        clienHourEditText = (EditText) findViewById(R.id.client_hour);
+        clientMinuteEditText = (EditText) findViewById(R.id.client_minute);
         resultTextView = (TextView) findViewById(R.id.result_info);
-        clientButton = (Button) findViewById(R.id.client_button);
-        clientButton.setOnClickListener(getResultInfoClickListener);
+        clientSetButton = (Button) findViewById(R.id.client_set);
+        clientResetButton = (Button) findViewById(R.id.client_reset);
+        clientPollButton = (Button) findViewById(R.id.client_poll);
+        clientSetButton.setOnClickListener(setClickListener);
+        clientResetButton.setOnClickListener(resetClickListener);
+        clientPollButton.setOnClickListener(pollClickListener);
     }
 
     @Override
